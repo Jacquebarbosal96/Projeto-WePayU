@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<java version="21.0.8" class="java.beans.XMLDecoder">
+ <object class="java.util.LinkedHashMap">
+  <void method="put">
+   <string>1147</string>
+   <object class="br.ufal.ic.p2.wepayu.models.Comissionado" id="Comissionado0">
+    <void property="comissao">
+     <double>0.05</double>
+    </void>
+    <void property="endereco">
+     <string>Rua dos Jooes, 333 - Campina Grande</string>
+    </void>
+    <void property="id">
+     <string>1147</string>
+    </void>
+    <void property="idSindicato">
+     <string>s128</string>
+    </void>
+    <void property="metodoPagamento">
+     <string>cheque</string>
+    </void>
+    <void property="nome">
+     <string>Joao da Silva</string>
+    </void>
+    <void property="salario">
+     <double>2300.0</double>
+    </void>
+    <void property="sindicalizado">
+     <boolean>true</boolean>
+    </void>
+    <void property="taxaSindical">
+     <double>1.0</double>
+    </void>
+    <void property="taxasServico">
+     <void method="put">
+      <string>1/1/2005</string>
+      <double>80.0</double>
+     </void>
+     <void method="put">
+      <string>2/1/2005</string>
+      <double>85.5</double>
+     </void>
+     <void method="put">
+      <string>3/1/2005</string>
+      <double>90.0</double>
+     </void>
+     <void method="put">
+      <string>4/1/2005</string>
+      <double>60.0</double>
+     </void>
+    </void>
+   </object>
+  </void>
+  <void method="put">
+   <string>1238</string>
+   <object class="br.ufal.ic.p2.wepayu.models.Assalariado" id="Assalariado0">
+    <void property="endereco">
+     <string>Rua das Marias, 333 - Campina Grande</string>
+    </void>
+    <void property="id">
+     <string>1238</string>
+    </void>
+    <void property="idSindicato">
+     <string>s129</string>
+    </void>
+    <void property="metodoPagamento">
+     <string>cheque</string>
+    </void>
+    <void property="nome">
+     <string>Mariazinha</string>
+    </void>
+    <void property="salario">
+     <double>2300.0</double>
+    </void>
+    <void property="sindicalizado">
+     <boolean>true</boolean>
+    </void>
+    <void property="taxaSindical">
+     <double>1.0</double>
+    </void>
+    <void property="taxasServico">
+     <void method="put">
+      <string>3/1/2005</string>
+      <double>100.0</double>
+     </void>
+    </void>
+   </object>
+  </void>
+  <void method="put">
+   <string>1060</string>
+   <object class="br.ufal.ic.p2.wepayu.models.Horista">
+    <void property="endereco">
+     <string>Rua dos Bufoes, 333 - Campina Grande</string>
+    </void>
+    <void property="id">
+     <string>1060</string>
+    </void>
+    <void property="idSindicato">
+     <string>s130</string>
+    </void>
+    <void property="metodoPagamento">
+     <string>cheque</string>
+    </void>
+    <void property="nome">
+     <string>Gaiato Vendedor</string>
+    </void>
+    <void property="salarioHora">
+     <double>1300.0</double>
+    </void>
+    <void property="sindicalizado">
+     <boolean>true</boolean>
+    </void>
+    <void property="taxaSindical">
+     <double>1.0</double>
+    </void>
+   </object>
+  </void>
+  <void method="put">
+   <string>1402</string>
+   <object class="br.ufal.ic.p2.wepayu.models.Horista">
+    <void property="endereco">
+     <string>Rua das Marias, 333 - Campina Grande</string>
+    </void>
+    <void property="id">
+     <string>1402</string>
+    </void>
+    <void property="metodoPagamento">
+     <string>cheque</string>
+    </void>
+    <void property="nome">
+     <string>Gorete</string>
+    </void>
+    <void property="salarioHora">
+     <double>1300.0</double>
+    </void>
+   </object>
+  </void>
+ </object>
+</java>
