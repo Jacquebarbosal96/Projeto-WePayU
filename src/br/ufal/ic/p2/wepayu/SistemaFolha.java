@@ -23,20 +23,27 @@ public class SistemaFolha {
     private int proximoId = 1;
     private static final String DATA_FILE = "data.xml";
 
+    private Map<String, String> agendasDePagamento = new HashMap<>();
+
     private Stack<SistemaFolhaMemento> undoStack = new Stack<>();
     private Stack<SistemaFolhaMemento> redoStack = new Stack<>();
 
     public SistemaFolha() {
+        this.empregados = new HashMap<>();
+        this.agendasDePagamento = new HashMap<>();
+        this.proximoId = 1;
         carregarSistema();
     }
 
     private SistemaFolhaMemento createMemento() {
-        return new SistemaFolhaMemento(this.empregados, this.proximoId);
+        return new SistemaFolhaMemento(this.empregados, this.proximoId, this.agendasDePagamento);
     }
 
     private void restoreState(SistemaFolhaMemento memento) {
         this.empregados = memento.getEmpregados();
         this.proximoId = memento.getProximoId();
+        this.agendasDePagamento = memento.getAgendasDePagamento();
+
     }
 
     private void saveState() {
@@ -68,6 +75,8 @@ public class SistemaFolha {
                  XMLDecoder decoder = new XMLDecoder(bis)) {
                 this.empregados = (Map<String, Empregado>) decoder.readObject();
                 this.proximoId = (int) decoder.readObject();
+                this.agendasDePagamento = (Map<String, String>) decoder.readObject();
+
             }
             catch(Exception e) {
                 zerarSistema();
@@ -76,45 +85,54 @@ public class SistemaFolha {
         else {
             this.empregados = new HashMap<>();
             this.proximoId = 1;
+            this.agendasDePagamento = new HashMap<>();
+
         }
     }
 
     public void encerrarSistema() {
         try(FileOutputStream fos = new FileOutputStream(DATA_FILE);
-             BufferedOutputStream bos = new BufferedOutputStream(fos);
-             XMLEncoder encoder = new XMLEncoder(bos)) {
-            encoder.setPersistenceDelegate(LocalDate.class,
-                new PersistenceDelegate() {
-                    @Override
-                    protected Expression instantiate(Object oldInstance, Encoder out) {
-                        LocalDate date = (LocalDate) oldInstance;
-                        return new Expression(date, LocalDate.class, "parse", new Object[]{date.toString()});
-                    }
-                });
+         BufferedOutputStream bos = new BufferedOutputStream(fos);
+         XMLEncoder encoder = new XMLEncoder(bos)) {
+        encoder.setPersistenceDelegate(LocalDate.class,
+            new PersistenceDelegate() {
+                @Override
+                protected Expression instantiate(Object oldInstance, Encoder out) {
+                    LocalDate date = (LocalDate) oldInstance;
+                    return new Expression(date, LocalDate.class, "parse", new Object[]{date.toString()});
+                }
+            });
 
-            encoder.writeObject(empregados);
-            encoder.writeObject(proximoId);
+        encoder.writeObject(empregados);
+        encoder.writeObject(proximoId);
+        encoder.writeObject(agendasDePagamento);
 
-        }
-        catch(IOException e) {
-            e.printStackTrace();
-        }
     }
+    catch(IOException e) {
+        e.printStackTrace();
+    }
+}
     
     public void zerarSistema() {
         saveState();
-        if(empregados != null) {
-            empregados.clear();
-        }
-        else {
-            empregados = new HashMap<>();
-        }
-        proximoId = 1;
-        File file = new File(DATA_FILE);
-        if(file.exists()) {
-            file.delete();
-        }
+    if(empregados != null) {
+        empregados.clear();
     }
+    else {
+        empregados = new HashMap<>();
+    }
+    if(agendasDePagamento != null) {
+        agendasDePagamento.clear();
+    }
+    else {
+        agendasDePagamento = new HashMap<>();
+    }
+    proximoId = 1;
+    File file = new File(DATA_FILE);
+    if(file.exists()) {
+        file.delete();
+    }
+}
 
 private boolean ehDiaDePagamento(Empregado e, LocalDate data) {
     if(e.getDataContratacao() != null && data.isBefore(e.getDataContratacao())) {
@@ -123,6 +141,7 @@ private boolean ehDiaDePagamento(Empregado e, LocalDate data) {
 
     String agenda = e.getAgendaPagamento();
     
+    // Agendas padrão existentes
     if(agenda.equals("semanal 5")) {
         return data.getDayOfWeek() == DayOfWeek.FRIDAY;
     }
@@ -141,6 +160,68 @@ private boolean ehDiaDePagamento(Empregado e, LocalDate data) {
             ultimoDiaUtil = ultimoDiaUtil.minusDays(1);
         }
         return data.equals(ultimoDiaUtil);
+    }
+    
+    // Novas agendas customizadas
+    String[] partes = agenda.split(" ");
+    
+    if(partes[0].equals("semanal")) {
+        if(partes.length == 2) {
+            // semanal X (toda semana no dia X)
+            int diaSemana = Integer.parseInt(partes[1]);
+            DayOfWeek dayOfWeek = DayOfWeek.of(diaSemana);
+            
+            // Para agendas semanais customizadas, considerar desde a data de contratação
+            LocalDate dataContrato = e.getDataContratacao();
+            if (dataContrato == null) {
+                dataContrato = LocalDate.of(2005, 1, 1);
+            }
+            
+            LocalDate primeiroPagamento = dataContrato.with(TemporalAdjusters.nextOrSame(dayOfWeek));
+            if(data.isBefore(primeiroPagamento)) {
+                return false;
+            }
+            
+            long semanasEntre = ChronoUnit.WEEKS.between(primeiroPagamento, data);
+            return data.getDayOfWeek() == dayOfWeek;
+            
+        } else if(partes.length == 3) {
+            // semanal X Y (a cada X semanas no dia Y)
+            int semanas = Integer.parseInt(partes[1]);
+            int diaSemana = Integer.parseInt(partes[2]);
+            DayOfWeek dayOfWeek = DayOfWeek.of(diaSemana);
+            
+            LocalDate dataContrato = e.getDataContratacao();
+            if (dataContrato == null) {
+                dataContrato = LocalDate.of(2005, 1, 1);
+            }
+            
+            LocalDate primeiroPagamento = dataContrato.with(TemporalAdjusters.nextOrSame(dayOfWeek));
+            
+            if(data.isBefore(primeiroPagamento)) {
+                return false;
+            }
+            
+            long semanasEntre = ChronoUnit.WEEKS.between(primeiroPagamento, data);
+            return semanasEntre % semanas == 0 && data.getDayOfWeek() == dayOfWeek;
+        }
+    }
+    else if(partes[0].equals("mensal")) {
+        if(partes[1].equals("$")) {
+            LocalDate ultimoDiaUtil = data.with(TemporalAdjusters.lastDayOfMonth());
+            while (ultimoDiaUtil.getDayOfWeek() == DayOfWeek.SATURDAY || ultimoDiaUtil.getDayOfWeek() == DayOfWeek.SUNDAY) {
+                ultimoDiaUtil = ultimoDiaUtil.minusDays(1);
+            }
+            return data.equals(ultimoDiaUtil);
+        } else {
+            // mensal X (dia X do mês)
+            int diaMes = Integer.parseInt(partes[1]);
+            if(diaMes > data.lengthOfMonth()) {
+                // Se o dia não existe no mês (ex: 30 de fevereiro), paga no último dia
+                return data.equals(data.with(TemporalAdjusters.lastDayOfMonth()));
+            }
+            return data.getDayOfMonth() == diaMes;
+        }
     }
     
     return false;
@@ -208,13 +289,8 @@ private boolean ehDiaDePagamento(Empregado e, LocalDate data) {
         }
 
         else if(e instanceof EmpregadoAssalariado) {
-                if("semanal 5".equals(e.getAgendaPagamento())) {
-                salarioBruto = (e.getSalario() * 12) / 52.0;
-            } else if("semanal 2 5".equals(e.getAgendaPagamento())) {
-                salarioBruto = (e.getSalario() * 12) / 26.0;
-            } else {
-                salarioBruto = e.getSalario();
-            }
+            double frequencia = getFrequenciaPagamento(e.getAgendaPagamento());
+            salarioBruto = (e.getSalario() * 12) / frequencia;
             salarioBruto = Math.floor((salarioBruto * 100) + 1e-9) / 100.0;
 }
         
@@ -501,7 +577,9 @@ private boolean ehDiaDePagamento(Empregado e, LocalDate data) {
     private boolean isAgendaPagamentoValida(String agenda) {
     return agenda.equals("semanal 5") || 
            agenda.equals("semanal 2 5") || 
-           agenda.equals("mensal $");
+           agenda.equals("mensal $") ||
+           (agendasDePagamento != null && agendasDePagamento.containsKey(agenda));
+
     }
 
 
@@ -1029,4 +1107,80 @@ private boolean ehDiaDePagamento(Empregado e, LocalDate data) {
     public int getNumeroDeEmpregados() {
         return empregados.size();
     }
+
+
+    private boolean validarDescricaoAgenda(String descricao) {
+    if (descricao == null || descricao.trim().isEmpty()) {
+        return false;
+    }
+    
+    String[] partes = descricao.split(" ");
+    
+    if (partes[0].equals("semanal")) {
+        if (partes.length == 2) {
+            try {
+                int diaSemana = Integer.parseInt(partes[1]);
+                return diaSemana >= 1 && diaSemana <= 7;
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        } else if (partes.length == 3) {
+            try {
+                int semanas = Integer.parseInt(partes[1]);
+                int diaSemana = Integer.parseInt(partes[2]);
+                return semanas >= 1 && semanas <= 52 && diaSemana >= 1 && diaSemana <= 7;
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        }
+    } else if (partes[0].equals("mensal")) {
+        if (partes.length == 2) {
+            if (partes[1].equals("$")) {
+                return true;
+            }
+            try {
+                int diaMes = Integer.parseInt(partes[1]);
+                return diaMes >= 1 && diaMes <= 28;
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        }
+    }
+    
+    return false;
+}
+
+public void criarAgendaDePagamentos(String descricao) throws WePayUException {
+    if (!validarDescricaoAgenda(descricao)) {
+        throw new DescricaoAgendaInvalidaException();
+    }
+    
+    if (agendasDePagamento.containsKey(descricao) || isAgendaPadrao(descricao)) {
+        throw new AgendaPagamentoJaExisteException();
+    }
+    
+    saveState();
+    agendasDePagamento.put(descricao, descricao);
+}
+
+private boolean isAgendaPadrao(String agenda) {
+    return agenda.equals("semanal 5") || 
+           agenda.equals("semanal 2 5") || 
+           agenda.equals("mensal $");
+}
+
+private double getFrequenciaPagamento(String agenda) {
+    if (agenda.startsWith("semanal")) {
+        String[] partes = agenda.split(" ");
+        if (partes.length == 2) {
+            return 52.0; 
+        } else if (partes.length == 3) {
+            int semanas = Integer.parseInt(partes[1]);
+            return 52.0 / semanas;
+        }
+    } else if (agenda.equals("mensal $") || agenda.startsWith("mensal ")) {
+        return 12.0; 
+    }
+    return 12.0; 
+}
 }

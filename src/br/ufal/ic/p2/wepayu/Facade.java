@@ -133,4 +133,9 @@ public class Facade {
     public int getNumeroDeEmpregados(){
         return sistema.getNumeroDeEmpregados();
     }
+
+    public void criarAgendaDePagamentos(String descricao) throws WePayUException {
+    verificarSistemaEncerrado();
+    sistema.criarAgendaDePagamentos(descricao);
+}
 }
