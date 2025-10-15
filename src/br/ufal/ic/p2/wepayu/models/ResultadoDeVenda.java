@@ -2,20 +2,20 @@ package br.ufal.ic.p2.wepayu.models;
 
 import java.time.LocalDate;
 
-public class CartaoDePonto implements Cloneable { 
+public class ResultadoDeVenda implements Cloneable {
     private LocalDate data;
-    private double horas;
+    private double valor;
 
-    public CartaoDePonto() {
+    public ResultadoDeVenda() {
 
     }
 
-    public CartaoDePonto(LocalDate data, double horas) {
+    public ResultadoDeVenda(LocalDate data, double valor) {
         this.data = data;
-        this.horas = horas;
+        this.valor = valor;
     }
 
-    public LocalDate getData() { 
+    public LocalDate getData() {
         return data;
     }
 
@@ -23,12 +23,12 @@ public class CartaoDePonto implements Cloneable {
         this.data = data;
     }
 
-    public double getHoras() {
-        return horas;
+    public double getValor() {
+        return valor;
     }
-
-    public void setHoras(double horas) {
-        this.horas = horas;
+    
+    public void setValor(double valor) {
+        this.valor = valor;
     }
 
     @Override

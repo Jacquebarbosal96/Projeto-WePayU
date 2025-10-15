@@ -1,125 +1,111 @@
 package br.ufal.ic.p2.wepayu.models;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.time.LocalDate;
 
-public class Empregado {
+public abstract class Empregado implements Cloneable {
     private String nome;
     private String endereco;
-    private String id;
-    private String metodoPagamento = "emMaos"; //padrao p iniciar
-// banco
-    private String banco;
-    private String agencia;
-    private String contaCorrente;
+    private MembroSindicato membroSindicato;
+    private MetodoPagamento metodoPagamento;
+    private String agendaPagamento;
+    private LocalDate ultimoPagamento;
+    private LocalDate dataContratacao;
 
-// sindicato:
-    private boolean sindicalizado = false;
-    private String idSindicato;
-    private double taxaSindical;
-    private Map<String, Double> taxasServico = new LinkedHashMap<>(); // data, valor
+    public Empregado() {
 
-    
-    public Empregado(){}
+    }
 
-    public Empregado(String nome, String endereco, String id, String metodoPagamento) {
+    public Empregado(String nome, String endereco) {
         this.nome = nome;
         this.endereco = endereco;
-        this.id = id;
-        this.metodoPagamento = metodoPagamento;
+        this.membroSindicato = null;
+        this.metodoPagamento = new EmMaos();
+        if(!(this instanceof EmpregadoHorista)) {
+             this.dataContratacao = LocalDate.of(2005, 1, 1);
+        }
+        this.ultimoPagamento = this.dataContratacao != null ? this.dataContratacao.minusDays(1) : LocalDate.of(2004, 12, 31);
     }
-    
+
     public String getNome() {
         return nome;
     }
-    
-    public String getEndereco() {
-        return endereco;
-    }
-    
-    public String getId() {
-        return id;
-    }
 
-    public void setId(String id){
-        this.id=id; 
-    }
-    
-    public String getMetodoPagamento() {
-        return metodoPagamento;
-    }
-    
     public void setNome(String nome) {
         this.nome = nome;
     }
-    
+
+    public String getEndereco() {
+        return endereco;
+    }
+
     public void setEndereco(String endereco) {
         this.endereco = endereco;
     }
-    
-    public void setMetodoPagamento(String metodoPagamento) {
+
+    public MembroSindicato getMembroSindicato() {
+        return membroSindicato;
+    }
+
+    public void setMembroSindicato(MembroSindicato membroSindicato) {
+        this.membroSindicato = membroSindicato;
+    }
+
+    public MetodoPagamento getMetodoPagamento() {
+        return metodoPagamento;
+    }
+
+    public void setMetodoPagamento(MetodoPagamento metodoPagamento) {
         this.metodoPagamento = metodoPagamento;
     }
 
-//pro banco
-     public String getBanco() {
-        return banco; 
-        }
-        public void setBanco(String banco) {
-            this.banco = banco; 
-            }
-        public String getAgencia() {
-            return agencia; 
-            }
-        public void setAgencia(String agencia) {
-            this.agencia = agencia; 
-            }
-        public String getContaCorrente() {
-            return contaCorrente; 
-            }
-        public void setContaCorrente(String contaCorrente) {
-            this.contaCorrente = contaCorrente; 
-            }
-
-
-
-
-
-//pro sindicato:
     public boolean isSindicalizado() {
-        return sindicalizado; 
+        return this.membroSindicato != null;
     }
 
-    public void setSindicalizado(boolean sindicalizado) {
-        this.sindicalizado = sindicalizado; 
-        }
+    public void lancaCartao(CartaoDePonto cartao) {
 
-    public String getIdSindicato() {
-        return idSindicato; 
     }
 
-    public void setIdSindicato(String idSindicato) {
-        this.idSindicato = idSindicato; 
-        }
+    public String getAgendaPagamento() {
+        return agendaPagamento;
+    }
 
-    public double getTaxaSindical() {
-        return taxaSindical; 
-        }
+    public void setAgendaPagamento(String agenda) {
+        this.agendaPagamento = agenda;
+    }
 
-    public void setTaxaSindical(double taxaSindical) {
-        this.taxaSindical = taxaSindical; 
-        }
+    public LocalDate getUltimoPagamento() {
+        return ultimoPagamento;
+    }
 
+    public void setUltimoPagamento(LocalDate data) {
+        this.ultimoPagamento = data;
+    }
 
-    public Map<String, Double> getTaxasServico() {
-        return taxasServico; 
-        }
+    public LocalDate getDataContratacao() {
+        return dataContratacao;
+    }
 
-    public void setTaxasServico(Map<String, Double> taxasServico) {
-        this.taxasServico = taxasServico; 
-        }
+    public void setDataContratacao(LocalDate dataContratacao) {
+        this.dataContratacao = dataContratacao;
+    }
+    
+    public abstract String getTipo();
+    public abstract double getSalario();
 
-    public void lancaTaxaServico(String data, double valor) {
-        taxasServico.put(data, valor); 
+    @Override
+    public Object clone() {
+        try {
+            Empregado cloned = (Empregado) super.clone();
+            if (this.membroSindicato != null) {
+                cloned.membroSindicato = (MembroSindicato) this.membroSindicato.clone();
+            }
+             if (this.metodoPagamento != null) {
+                cloned.metodoPagamento = (MetodoPagamento) this.metodoPagamento.clone();
+            }
+            return cloned;
+        } catch (CloneNotSupportedException e) {
+            throw new InternalError(e.getMessage());
         }
+    }
 }
