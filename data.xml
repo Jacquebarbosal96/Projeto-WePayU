@@ -28,14 +28,4 @@
   </void>
  </object>
  <int>2</int>
- <object class="java.util.HashMap">
-  <void method="put">
-   <string>mensal 1</string>
-   <string>mensal 1</string>
-  </void>
-  <void method="put">
-   <string>semanal 2</string>
-   <string>semanal 2</string>
-  </void>
- </object>
 </java>

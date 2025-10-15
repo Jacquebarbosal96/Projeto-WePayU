@@ -20,18 +20,6 @@ public abstract class Empregado implements Cloneable {
         this.endereco = endereco;
         this.membroSindicato = null;
         this.metodoPagamento = new EmMaos();
-
-
-        if(this instanceof EmpregadoHorista) {
-            this.agendaPagamento = "semanal 5";
-        } else if(this instanceof EmpregadoAssalariado && !(this instanceof EmpregadoComissionado)) {
-            this.agendaPagamento = "mensal $";
-        } else if(this instanceof EmpregadoComissionado) {
-            this.agendaPagamento = "semanal 2 5";
-        }
-
-
-
         if(!(this instanceof EmpregadoHorista)) {
              this.dataContratacao = LocalDate.of(2005, 1, 1);
         }
@@ -109,14 +97,15 @@ public abstract class Empregado implements Cloneable {
     public Object clone() {
         try {
             Empregado cloned = (Empregado) super.clone();
-            if (this.membroSindicato != null) {
+            if(this.membroSindicato != null) {
                 cloned.membroSindicato = (MembroSindicato) this.membroSindicato.clone();
             }
-             if (this.metodoPagamento != null) {
+             if(this.metodoPagamento != null) {
                 cloned.metodoPagamento = (MetodoPagamento) this.metodoPagamento.clone();
             }
             return cloned;
-        } catch (CloneNotSupportedException e) {
+        }
+        catch(CloneNotSupportedException e) {
             throw new InternalError(e.getMessage());
         }
     }
