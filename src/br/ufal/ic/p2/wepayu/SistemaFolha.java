@@ -135,13 +135,13 @@ public class SistemaFolha {
 }
 
 private boolean ehDiaDePagamento(Empregado e, LocalDate data) {
+
     if(e.getDataContratacao() != null && data.isBefore(e.getDataContratacao())) {
         return false;
     }
 
     String agenda = e.getAgendaPagamento();
-    
-    // Agendas padrão existentes
+
     if(agenda.equals("semanal 5")) {
         return data.getDayOfWeek() == DayOfWeek.FRIDAY;
     }
@@ -167,34 +167,25 @@ private boolean ehDiaDePagamento(Empregado e, LocalDate data) {
     
     if(partes[0].equals("semanal")) {
         if(partes.length == 2) {
-            // semanal X (toda semana no dia X)
             int diaSemana = Integer.parseInt(partes[1]);
             DayOfWeek dayOfWeek = DayOfWeek.of(diaSemana);
             
-            // Para agendas semanais customizadas, considerar desde a data de contratação
-            LocalDate dataContrato = e.getDataContratacao();
-            if (dataContrato == null) {
-                dataContrato = LocalDate.of(2005, 1, 1);
-            }
-            
+            LocalDate dataContrato = e.getDataContratacao() != null ? e.getDataContratacao() : LocalDate.of(2005, 1, 1);
             LocalDate primeiroPagamento = dataContrato.with(TemporalAdjusters.nextOrSame(dayOfWeek));
+            
             if(data.isBefore(primeiroPagamento)) {
                 return false;
             }
             
             long semanasEntre = ChronoUnit.WEEKS.between(primeiroPagamento, data);
-            return data.getDayOfWeek() == dayOfWeek;
+            return semanasEntre >= 0 && data.getDayOfWeek() == dayOfWeek;
             
         } else if(partes.length == 3) {
-            // semanal X Y (a cada X semanas no dia Y)
-            int semanas = Integer.parseInt(partes[1]);
+            int intervalo = Integer.parseInt(partes[1]);
             int diaSemana = Integer.parseInt(partes[2]);
             DayOfWeek dayOfWeek = DayOfWeek.of(diaSemana);
             
-            LocalDate dataContrato = e.getDataContratacao();
-            if (dataContrato == null) {
-                dataContrato = LocalDate.of(2005, 1, 1);
-            }
+            LocalDate dataContrato = e.getDataContratacao() != null ? e.getDataContratacao() : LocalDate.of(2005, 1, 1);
             
             LocalDate primeiroPagamento = dataContrato.with(TemporalAdjusters.nextOrSame(dayOfWeek));
             
@@ -203,8 +194,11 @@ private boolean ehDiaDePagamento(Empregado e, LocalDate data) {
             }
             
             long semanasEntre = ChronoUnit.WEEKS.between(primeiroPagamento, data);
-            return semanasEntre % semanas == 0 && data.getDayOfWeek() == dayOfWeek;
-        }
+            
+            boolean resultado = semanasEntre % intervalo == 0 && data.getDayOfWeek() == dayOfWeek;
+    
+            return resultado;        
+}
     }
     else if(partes[0].equals("mensal")) {
         if(partes[1].equals("$")) {
@@ -214,10 +208,8 @@ private boolean ehDiaDePagamento(Empregado e, LocalDate data) {
             }
             return data.equals(ultimoDiaUtil);
         } else {
-            // mensal X (dia X do mês)
             int diaMes = Integer.parseInt(partes[1]);
             if(diaMes > data.lengthOfMonth()) {
-                // Se o dia não existe no mês (ex: 30 de fevereiro), paga no último dia
                 return data.equals(data.with(TemporalAdjusters.lastDayOfMonth()));
             }
             return data.getDayOfMonth() == diaMes;
@@ -1175,12 +1167,15 @@ private double getFrequenciaPagamento(String agenda) {
         if (partes.length == 2) {
             return 52.0; 
         } else if (partes.length == 3) {
-            int semanas = Integer.parseInt(partes[1]);
-            return 52.0 / semanas;
+            int intervalo = Integer.parseInt(partes[1]);
+            return 52.0 / intervalo; 
         }
-    } else if (agenda.equals("mensal $") || agenda.startsWith("mensal ")) {
+    } else if (agenda.startsWith("mensal")) {
         return 12.0; 
     }
     return 12.0; 
 }
+
+
+
 }
