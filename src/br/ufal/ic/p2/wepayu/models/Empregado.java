@@ -20,6 +20,18 @@ public abstract class Empregado implements Cloneable {
         this.endereco = endereco;
         this.membroSindicato = null;
         this.metodoPagamento = new EmMaos();
+
+
+        if(this instanceof EmpregadoHorista) {
+            this.agendaPagamento = "semanal 5";
+        } else if(this instanceof EmpregadoAssalariado && !(this instanceof EmpregadoComissionado)) {
+            this.agendaPagamento = "mensal $";
+        } else if(this instanceof EmpregadoComissionado) {
+            this.agendaPagamento = "semanal 2 5";
+        }
+
+
+
         if(!(this instanceof EmpregadoHorista)) {
              this.dataContratacao = LocalDate.of(2005, 1, 1);
         }

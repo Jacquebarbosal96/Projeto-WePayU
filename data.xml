@@ -2,10 +2,148 @@
 <java version="21.0.8" class="java.beans.XMLDecoder">
  <object class="java.util.HashMap">
   <void method="put">
+   <string>1</string>
+   <object class="br.ufal.ic.p2.wepayu.models.EmpregadoComissionado" id="EmpregadoComissionado0">
+    <void property="agendaPagamento">
+     <string>semanal 5</string>
+    </void>
+    <void property="dataContratacao">
+     <object class="java.time.LocalDate" method="parse">
+      <string>2005-01-01</string>
+     </object>
+    </void>
+    <void property="endereco">
+     <string>Rua Gama, 3 - Corinto</string>
+    </void>
+    <void property="metodoPagamento">
+     <object class="br.ufal.ic.p2.wepayu.models.EmMaos"/>
+    </void>
+    <void property="nome">
+     <string>Gama Tres Comissionado</string>
+    </void>
+    <void property="salario">
+     <double>2800.0</double>
+    </void>
+    <void property="taxaDeComissao">
+     <double>0.11</double>
+    </void>
+    <void property="ultimoPagamento">
+     <object class="java.time.LocalDate" method="parse">
+      <string>2004-12-31</string>
+     </object>
+    </void>
+    <void property="vendas">
+     <void method="add">
+      <object class="br.ufal.ic.p2.wepayu.models.ResultadoDeVenda">
+       <void property="data">
+        <object class="java.time.LocalDate" method="parse">
+         <string>2005-01-01</string>
+        </object>
+       </void>
+       <void property="valor">
+        <double>100.0</double>
+       </void>
+      </object>
+     </void>
+     <void method="add">
+      <object class="br.ufal.ic.p2.wepayu.models.ResultadoDeVenda">
+       <void property="data">
+        <object class="java.time.LocalDate" method="parse">
+         <string>2005-01-02</string>
+        </object>
+       </void>
+       <void property="valor">
+        <double>200.0</double>
+       </void>
+      </object>
+     </void>
+     <void method="add">
+      <object class="br.ufal.ic.p2.wepayu.models.ResultadoDeVenda">
+       <void property="data">
+        <object class="java.time.LocalDate" method="parse">
+         <string>2005-01-16</string>
+        </object>
+       </void>
+       <void property="valor">
+        <double>200.0</double>
+       </void>
+      </object>
+     </void>
+     <void method="add">
+      <object class="br.ufal.ic.p2.wepayu.models.ResultadoDeVenda">
+       <void property="data">
+        <object class="java.time.LocalDate" method="parse">
+         <string>2005-01-30</string>
+        </object>
+       </void>
+       <void property="valor">
+        <double>300.0</double>
+       </void>
+      </object>
+     </void>
+    </void>
+   </object>
+  </void>
+  <void method="put">
    <string>2</string>
-   <object class="br.ufal.ic.p2.wepayu.models.EmpregadoComissionado">
+   <object class="br.ufal.ic.p2.wepayu.models.EmpregadoHorista">
+    <void property="agendaPagamento">
+     <string>mensal $</string>
+    </void>
+    <void property="endereco">
+     <string>Rua dos Jooes, 333 - Campina Grande</string>
+    </void>
+    <void property="metodoPagamento">
+     <object class="br.ufal.ic.p2.wepayu.models.EmMaos"/>
+    </void>
+    <void property="nome">
+     <string>Joao da Silva</string>
+    </void>
+    <void property="salario">
+     <double>23.0</double>
+    </void>
+    <void property="ultimoPagamento">
+     <object class="java.time.LocalDate" method="parse">
+      <string>2004-12-31</string>
+     </object>
+    </void>
+   </object>
+  </void>
+  <void method="put">
+   <string>3</string>
+   <object class="br.ufal.ic.p2.wepayu.models.EmpregadoAssalariado">
     <void property="agendaPagamento">
      <string>semanal 2 5</string>
+    </void>
+    <void property="dataContratacao">
+     <object class="java.time.LocalDate" method="parse">
+      <string>2005-01-01</string>
+     </object>
+    </void>
+    <void property="endereco">
+     <string>Rua das Marias, 333 - Campina Grande</string>
+    </void>
+    <void property="metodoPagamento">
+     <object class="br.ufal.ic.p2.wepayu.models.EmMaos"/>
+    </void>
+    <void property="nome">
+     <string>Mariazinha</string>
+    </void>
+    <void property="salario">
+     <double>2300.45</double>
+    </void>
+    <void property="ultimoPagamento">
+     <object class="java.time.LocalDate" method="parse">
+      <string>2004-12-31</string>
+     </object>
+    </void>
+   </object>
+  </void>
+  <void method="put">
+   <string>4</string>
+   <object class="br.ufal.ic.p2.wepayu.models.EmpregadoComissionado">
+    <void property="agendaPagamento">
+     <string>semanal 5</string>
     </void>
     <void property="dataContratacao">
      <object class="java.time.LocalDate" method="parse">
@@ -22,7 +160,7 @@
      <string>Gaiato Vendedor</string>
     </void>
     <void property="salario">
-     <double>2300.0</double>
+     <double>2300.45</double>
     </void>
     <void property="taxaDeComissao">
      <double>0.05</double>
@@ -35,5 +173,5 @@
    </object>
   </void>
  </object>
- <int>4</int>
+ <int>5</int>
 </java>

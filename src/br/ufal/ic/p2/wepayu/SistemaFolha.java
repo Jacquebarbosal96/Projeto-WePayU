@@ -116,32 +116,35 @@ public class SistemaFolha {
         }
     }
 
-    private boolean ehDiaDePagamento(Empregado e, LocalDate data) {
-        if(e.getDataContratacao() != null && data.isBefore(e.getDataContratacao())) {
-            return false;
-        }
-
-        if(e instanceof EmpregadoHorista) {
-            return data.getDayOfWeek() == DayOfWeek.FRIDAY;
-        }
-        if(e instanceof EmpregadoAssalariado && !(e instanceof EmpregadoComissionado)) {
-            LocalDate ultimoDiaUtil = data.with(TemporalAdjusters.lastDayOfMonth());
-            while (ultimoDiaUtil.getDayOfWeek() == DayOfWeek.SATURDAY || ultimoDiaUtil.getDayOfWeek() == DayOfWeek.SUNDAY) {
-                ultimoDiaUtil = ultimoDiaUtil.minusDays(1);
-            }
-            return data.equals(ultimoDiaUtil);
-        }
-        if(e instanceof EmpregadoComissionado) {
-            LocalDate dataContrato = e.getDataContratacao();
-            LocalDate primeiroPagamento = dataContrato.with(TemporalAdjusters.next(DayOfWeek.FRIDAY)).with(TemporalAdjusters.next(DayOfWeek.FRIDAY));
-            if(data.isBefore(primeiroPagamento)) {
-                return false;
-            }
-            long daysBetween = ChronoUnit.DAYS.between(primeiroPagamento, data);
-            return daysBetween % 14 == 0 && data.getDayOfWeek() == DayOfWeek.FRIDAY;
-        }
+private boolean ehDiaDePagamento(Empregado e, LocalDate data) {
+    if(e.getDataContratacao() != null && data.isBefore(e.getDataContratacao())) {
         return false;
     }
+
+    String agenda = e.getAgendaPagamento();
+    
+    if(agenda.equals("semanal 5")) {
+        return data.getDayOfWeek() == DayOfWeek.FRIDAY;
+    }
+    else if(agenda.equals("semanal 2 5")) {
+        LocalDate dataContrato = e.getDataContratacao();
+        LocalDate primeiroPagamento = dataContrato.with(TemporalAdjusters.next(DayOfWeek.FRIDAY)).with(TemporalAdjusters.next(DayOfWeek.FRIDAY));
+        if(data.isBefore(primeiroPagamento)) {
+            return false;
+        }
+        long daysBetween = ChronoUnit.DAYS.between(primeiroPagamento, data);
+        return daysBetween % 14 == 0 && data.getDayOfWeek() == DayOfWeek.FRIDAY;
+    }
+    else if(agenda.equals("mensal $")) {
+        LocalDate ultimoDiaUtil = data.with(TemporalAdjusters.lastDayOfMonth());
+        while (ultimoDiaUtil.getDayOfWeek() == DayOfWeek.SATURDAY || ultimoDiaUtil.getDayOfWeek() == DayOfWeek.SUNDAY) {
+            ultimoDiaUtil = ultimoDiaUtil.minusDays(1);
+        }
+        return data.equals(ultimoDiaUtil);
+    }
+    
+    return false;
+}
 
     private String formatarValor(double valor) {
         return String.format("%.2f", valor).replace('.', ',');
@@ -170,20 +173,32 @@ public class SistemaFolha {
         if(e instanceof EmpregadoHorista) {
             EmpregadoHorista h = (EmpregadoHorista) e;
             for(CartaoDePonto c : h.getCartoes()) {
-                if(!c.getData().isBefore(dataInicio) && !c.getData().isAfter(dataFim)) {
-                    double horasDoDia = c.getHoras();
-                    horasNormais += Math.min(horasDoDia, 8);
-                    horasExtras += Math.max(0, horasDoDia - 8);
-                }
+                if((c.getData().isAfter(dataInicio) || c.getData().equals(dataInicio)) && 
+               (c.getData().isBefore(dataFim) || c.getData().equals(dataFim))) {
+                double horasDoDia = c.getHoras();
+                horasNormais += Math.min(horasDoDia, 8);
+                horasExtras += Math.max(0, horasDoDia - 8);
             }
-            salarioBruto = (horasNormais * h.getSalario()) + (horasExtras * h.getSalario() * 1.5);
         }
+        salarioBruto = (horasNormais * h.getSalario()) + (horasExtras * h.getSalario() * 1.5);
+    }
         else if(e instanceof EmpregadoComissionado) {
             EmpregadoComissionado c = (EmpregadoComissionado) e;
-            fixo = (c.getSalario() * 12) / 26.0;
-            fixo = Math.floor((fixo * 100) + 1e-9) / 100.0;
+    
+            if("semanal 5".equals(e.getAgendaPagamento())) {
+        fixo = (c.getSalario() * 12) / 52.0;
+    } else if("semanal 2 5".equals(e.getAgendaPagamento())) {
+        fixo = (c.getSalario() * 12) / 26.0;
+    } else { // mensal $
+        fixo = c.getSalario();
+    }
+    
+    fixo = Math.floor((fixo * 100) + 1e-9) / 100.0;
+    
             for(ResultadoDeVenda v : c.getVendas()) {
-                if(!v.getData().isBefore(dataInicio) && !v.getData().isAfter(dataFim)) {
+                LocalDate dataVenda = v.getData();
+                if((dataVenda.isAfter(dataInicio) || dataVenda.equals(dataInicio)) && 
+                (dataVenda.isBefore(dataFim) || dataVenda.equals(dataFim))) {
                     vendas += v.getValor();
                     comissao += v.getValor() * c.getTaxaDeComissao();
                 }
@@ -191,11 +206,17 @@ public class SistemaFolha {
             comissao = Math.floor((comissao * 100) + 1e-9) / 100.0;
             salarioBruto = fixo + comissao;
         }
+
         else if(e instanceof EmpregadoAssalariado) {
-            salarioBruto = e.getSalario();
-        }
-        
-        salarioBruto = Math.floor((salarioBruto * 100) + 1e-9) / 100.0;
+                if("semanal 5".equals(e.getAgendaPagamento())) {
+                salarioBruto = (e.getSalario() * 12) / 52.0;
+            } else if("semanal 2 5".equals(e.getAgendaPagamento())) {
+                salarioBruto = (e.getSalario() * 12) / 26.0;
+            } else {
+                salarioBruto = e.getSalario();
+            }
+            salarioBruto = Math.floor((salarioBruto * 100) + 1e-9) / 100.0;
+}
         
         if(e.isSindicalizado()) {
             MembroSindicato membro = e.getMembroSindicato();
@@ -262,10 +283,12 @@ public class SistemaFolha {
             writer.printf("TOTAL FOLHA: %.2f\n", totalFolha);
 
             aPagar.forEach(e -> {
-                 if((double) pagamentos.get(e)[0] > 0) {
-                    e.setUltimoPagamento(dataFolha);
-                }
-            });
+                 Object[] pagamento = pagamentos.get(e);
+                if((double) pagamento[0] > 0) {
+                e.setUltimoPagamento(dataFolha);
+            }
+        });
+
         }
         catch(Exception ex) {
             throw new Exception("Nao foi possivel salvar o arquivo.");
@@ -474,6 +497,14 @@ public class SistemaFolha {
         saveState();
         empregados.remove(emp);
     }
+
+    private boolean isAgendaPagamentoValida(String agenda) {
+    return agenda.equals("semanal 5") || 
+           agenda.equals("semanal 2 5") || 
+           agenda.equals("mensal $");
+    }
+
+
     public void alteraEmpregado(String emp, String atributo, String valor1, String valor2, String valor3) throws WePayUException, EmpregadoNaoExisteException {
         saveState();
         if(emp == null || emp.isEmpty()) {
@@ -587,6 +618,19 @@ public class SistemaFolha {
                 novoEmpregado.setMetodoPagamento(e.getMetodoPagamento());
                 empregados.put(emp, novoEmpregado);
                 break;
+
+                case "agendapagamento":
+                    if(valor1 == null || valor1.isEmpty()) {
+                        throw new WePayUException("Agenda de pagamento nao pode ser nula");
+                    }
+                    if(!isAgendaPagamentoValida(valor1)) {
+                        throw new WePayUException("Agenda de pagamento nao esta disponivel");
+                    }
+                    e.setAgendaPagamento(valor1);
+                    break;
+
+
+
             default:
                 throw new AtributoNaoExisteException();
         }
@@ -697,6 +741,8 @@ public class SistemaFolha {
                 }
                 throw new EmpregadoNaoSindicalizadoException();
 
+            case "agendapagamento": 
+                return e.getAgendaPagamento();
 
 
             default:
